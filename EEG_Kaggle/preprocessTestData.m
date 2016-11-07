@@ -20,9 +20,9 @@ function [newData] = preprocessTestData(user, fileLimit)
     steps = fileLimit;
     
     for i = 1:fileLimit
-        fname = sprintf('data/test_%d/%d_%d.mat', user, user, i);
-        waitbar(i / steps, h, sprintf('data/test-%d/%d-%d.mat', user, user, i));
-        if(exist(fname) == 2)            
+        fname = sprintf('data/test_%d_new/new_%d_%d.mat', user, user, i);
+        waitbar(i / steps, h, sprintf('data/test-%d-new/new-%d-%d.mat', user, user, i));
+        if(exist(fname) == 2)
             fselect = [fselect {fname}];
         end
     end
@@ -52,13 +52,29 @@ function [newData] = preprocessTestData(user, fileLimit)
                 colIndex = colIndex + 1;
             end
         end
+        
+        colIndex = outerColIndex;        
+        xd_interictal = f1.dataStruct.data;
+        for t = 1:pt:size(xd_interictal, 1)
+            if(t+pt-1 > size(xd_interictal, 1))
+                break
+            end            
+            fnew = fExtractor(xd_interictal(t:(t+pt-1), :));
+            fnew = fnew(:);
+            % Append new features from index (size(bands, 2)*16ch + 1)
+            enter = (size(bands, 2)*16 + 1);
+            newData(enter:(enter + length(fnew) - 1), colIndex) = fnew;
+            % Increment column for next time segment
+            colIndex = colIndex + 1;
+        end
+        
         col_s = outerColIndex;
         col_f = colIndex - 1;
         fsplit = strsplit(fname, '/');
         fprintf(metaFileID, '%s, %s, %d, %d\n', fsplit{2}, fsplit{3}, col_s, col_f);
         outerColIndex = outerColIndex + 29;
         
-        waitbar(i / steps, h, sprintf('data/test-%d/%d-%d.mat', user, user, i));
+        waitbar(i / steps, h, sprintf('data/test-%d-new/new-%d-%d.mat', user, user, i));
     end
     fclose(metaFileID);
     close(h);

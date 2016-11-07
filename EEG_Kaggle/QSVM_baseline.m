@@ -1,7 +1,7 @@
 clear all
-user = 2;
-dinter = load(sprintf('MatFiles_7Bands_ExtFeat256\\train_%d[interictal].mat', user));
-dpre = load(sprintf('MatFiles_7Bands_ExtFeat256\\train_%d[preictal].mat', user));
+user = 3;
+dinter = load(sprintf('MatFiles_7Bands_new\\train_%d[interictal].mat', user));
+dpre = load(sprintf('MatFiles_7Bands_new\\train_%d[preictal].mat', user));
 li = size(dinter.newData, 2);
 lp = size(dpre.newData, 2);
 prob_preictal = lp/(lp + li);
@@ -22,7 +22,7 @@ fprintf('Accuracy on train data %0.2f \n',sum(yCV == labels)/length(labels)*100)
 ScoreSVMModel = fitPosterior(SVMModel,data,labels);
 [yfit, yfitScore] = predict(ScoreSVMModel, dtest);
 %% Quadratic SVM
-dtest = load(sprintf('MatFiles_7Bands_ExtFeat256\\test_%d.mat', user));
+dtest = load(sprintf('MatFiles_7Bands_new\\test_%d.mat', user));
 dtest = [dtest.newData]';
 [yfit, yscore] = quadSVM_u.predictFcn(dtest);
 
@@ -46,7 +46,7 @@ fclose(fileID);
 rsol_File = dataArray{:, 1};
 rsol_Class = dataArray{:, 2};
 clearvars filename delimiter startRow formatSpec fileID dataArray ans;
-filename = 'MatFiles_7Bands_ExtFeat256\MetaFile_Test.csv';
+filename = 'MatFiles_7Bands_new\MetaFile_Test.csv';
 delimiter = ',';
 formatSpec = '%*s%s%f%*s%[^\n\r]';
 fileID = fopen(filename,'r');
