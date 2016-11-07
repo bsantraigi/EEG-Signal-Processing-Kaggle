@@ -26,6 +26,8 @@ save('train_3[interictal]', 'newData', '-v7.3');
 clearvars newData
 
 %%
+f = fopen('MetaFile_Test.csv', 'w');
+fclose(f);
 newData = preprocessTestData(1, 1800);
 save('test_1', 'newData', '-v7.3');
 clearvars newData

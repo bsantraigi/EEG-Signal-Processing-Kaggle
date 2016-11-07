@@ -24,27 +24,63 @@ function [newData] = preprocessTrainData(user, type2, fileLimit)
     end
 %     needle = sprintf('_%d.mat', type);
 %     fold = sprintf('train_%d/', user);
+%     fselect = {};
+%     
+%     h = waitbar(0, '', 'Name', 'Looking for files...');
+%     steps = fileLimit;
+%     
+%     % Enumerate through all possible sequence ids 
+%     % Choose the ones that actually exists
+%     for i = 1:fileLimit
+%         fname = sprintf('data/train_%d/%d_%d_%d.mat', user, user, i, type);
+%         waitbar(i / steps, h, sprintf('data/train-%d/%d-%d-%d.mat', user, user, i, type));
+%         if(exist(fname) == 2)      
+%             fselect = [fselect {fname}];
+%         end
+%     end
+    
+    % New code for file selection    
+    safeTable = getSafeList();
+    safeTable.user = safeTable.image;
+    safeTable.user = cellfun(@(x) str2double(x(1:1)), safeTable.user);
+    safeTable = safeTable(safeTable.user == user, :);
+
     fselect = {};
+
+    regx_train = '^[1-3]{1}_[0-9]+_[01].mat';
+    safeTable.path = cell(size(safeTable, 1), 1);
     
     h = waitbar(0, '', 'Name', 'Looking for files...');
-    steps = fileLimit;
-    
-    % Enumerate through all possible sequence ids 
-    % Choose the ones that actually exists
-    for i = 1:fileLimit
-        fname = sprintf('data/train_%d/%d_%d_%d.mat', user, user, i, type);
-        waitbar(i / steps, h, sprintf('data/train-%d/%d-%d-%d.mat', user, user, i, type));
-        if(exist(fname) == 2)      
-            fselect = [fselect {fname}];
+    steps = size(safeTable, 1);
+    for i = 1:size(safeTable, 1)        
+        waitbar(i / steps, h, sprintf('Checking %s', safeTable.image{i}));
+        if safeTable.class(i) == type
+            [startIndex, endIndex] = regexp(safeTable.image{i},regx_train);
+            if ~isempty(startIndex)
+                if(safeTable.safe(i) == 1)
+                    safeTable.path{i} = sprintf('data/train_%d/%s', user, safeTable.image{i});
+                    if ~isempty(safeTable.path{i})
+                        fselect = [fselect; {safeTable.path{i}}];
+                    end
+                end
+            else
+                if(safeTable.safe(i) == 1)
+                    safeTable.path{i} = sprintf('data/test_%d/%s', user, safeTable.image{i});
+                    if ~isempty(safeTable.path{i})
+                        fselect = [fselect; {safeTable.path{i}}];                        
+                    end
+                end
+            end
         end
-    end
+    end    
+    
+    close(h);  
     
     % P.S. - Each data file (containing 10 min. data) is converted to
     % 29 seperate feature columns which are uniformly distributed
     % in time i.e. [0 ~ 10/29, 10/29 ~ 20/29, ..., 280/29 ~ 10] mins.
     newData = zeros(80, 29*length(fselect));
-    
-    close(h);    
+       
     h = waitbar(0, '', 'Name', 'Generating Data Matrix...');
     steps = length(fselect);
     
