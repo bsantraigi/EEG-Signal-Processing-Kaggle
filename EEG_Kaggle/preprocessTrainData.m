@@ -40,41 +40,8 @@ function [newData] = preprocessTrainData(user, type2, fileLimit)
 %     end
     
     % New code for file selection    
-    safeTable = getSafeList();
-    safeTable.user = safeTable.image;
-    safeTable.user = cellfun(@(x) str2double(x(1:1)), safeTable.user);
-    safeTable = safeTable(safeTable.user == user, :);
-
-    fselect = {};
-
-    regx_train = '^[1-3]{1}_[0-9]+_[01].mat';
-    safeTable.path = cell(size(safeTable, 1), 1);
+    [~, fselect] = getSafeList(user, type);
     
-    h = waitbar(0, '', 'Name', 'Looking for files...');
-    steps = size(safeTable, 1);
-    for i = 1:size(safeTable, 1)        
-        waitbar(i / steps, h, sprintf('Checking %s', safeTable.image{i}));
-        if safeTable.class(i) == type
-            [startIndex, endIndex] = regexp(safeTable.image{i},regx_train);
-            if ~isempty(startIndex)
-                if(safeTable.safe(i) == 1)
-                    safeTable.path{i} = sprintf('data/train_%d/%s', user, safeTable.image{i});
-                    if ~isempty(safeTable.path{i})
-                        fselect = [fselect; {safeTable.path{i}}];
-                    end
-                end
-            else
-                if(safeTable.safe(i) == 1)
-                    safeTable.path{i} = sprintf('data/test_%d/%s', user, safeTable.image{i});
-                    if ~isempty(safeTable.path{i})
-                        fselect = [fselect; {safeTable.path{i}}];                        
-                    end
-                end
-            end
-        end
-    end    
-    
-    close(h);  
     
     % P.S. - Each data file (containing 10 min. data) is converted to
     % 29 seperate feature columns which are uniformly distributed

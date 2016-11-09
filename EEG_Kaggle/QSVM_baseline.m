@@ -5,16 +5,16 @@ dpre = load(sprintf('MatFiles_7Bands_new\\train_%d[preictal].mat', user));
 li = size(dinter.newData, 2);
 lp = size(dpre.newData, 2);
 prob_preictal = lp/(lp + li);
-li = min(li, 3*lp);
+li = min(li, 2*lp);
 data = [dinter.newData(:, 1:li), dpre.newData(:, 1:lp)]';
-
+data = RemoveComplex(data);
 labels = [zeros(li, 1); ones(lp, 1)];
 dataCombo = [data labels];
 rndp = randperm(size(dataCombo,1), size(dataCombo,1));
 dataCombo = dataCombo(rndp, :);
 % labels = [labels, ~labels];
 %% FitCSVM
-SVMModel = fitcsvm(data,labels,'KernelFunction','polynomial','Standardize',true, 'PolynomialOrder', 2);
+SVMModel = fitcsvm(data,labels,'KernelFunction','polynomial', 'PolynomialOrder', 2);
 % SVMModel = fitcsvm(data,labels,'KernelFunction','rbf','Standardize',true);
 yCV = predict(SVMModel, data);
 fprintf('Accuracy on train data %0.2f \n',sum(yCV == labels)/length(labels)*100);
@@ -24,7 +24,8 @@ ScoreSVMModel = fitPosterior(SVMModel,data,labels);
 %% Quadratic SVM
 dtest = load(sprintf('MatFiles_7Bands_new\\test_%d.mat', user));
 dtest = [dtest.newData]';
-[yfit, yscore] = quadSVM_u.predictFcn(dtest);
+% dtest = RemoveComplex(dtest);
+[yfit, yscore] = SVMModel.predictFcn(dtest);
 
 % yfit = yfitScore(:,2);
 for i = 1:size(yfit, 1)/29
