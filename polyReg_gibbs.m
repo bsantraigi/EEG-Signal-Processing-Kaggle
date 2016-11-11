@@ -1,17 +1,18 @@
 %% 
-clc
 clear
 close all
-xs = normrnd(0, 200, 1000, 1);
+N = 1000;
+xs = normrnd(0, 5, N, 1);
 xs = sort(xs);
 system_order = 3;
-a = [1.5;15;12];
+a = [7;0.2;15]; % [a_0, a_1, a_2]
 X = ones(size(xs, 1),1);
 for i = 1:system_order-1
     X = [X xs.^i];
 end
 y0 = X*a;
-y = awgn(y0, 0.1, 'measured');
+% y = awgn(y0, 0.005, 'measured');
+y = y0 + normrnd(0, 200, 1000, 1);
 mse2 = @(x, x2) mean((x-x2).^2);
 
 %%
@@ -19,21 +20,18 @@ clf
 format long g
 new_order = system_order; % Altered
 % new_order = 8;
-alpha_0 = 1;
+alpha_0 = 1e-1;
 % beta_0 = 0.4; % Altered
-beta_0 = 0.001;
-alpha_n = 1;
-beta_n = 0.1;
+beta_0 = 1e-1;
+alpha_n = 1e-1;
+beta_n = 1e-1;
 gm_0 = gamrnd(alpha_0, 1/beta_0)
 a_new = mvnrnd(zeros(new_order, 1), 1/gm_0*eye(new_order))
 gm_n = gamrnd(alpha_n, 1/beta_n)
 
-gsamples = 1000;
+gsamples = 5000;
 
-X_dat = ones(size(xs, 1), new_order);
-for i = 1:new_order-1
-    X_dat(:,i) = xs.^i;
-end
+X_dat = X;
 
 xtx = X_dat'*X_dat;
 
@@ -58,15 +56,17 @@ for it = 2:gsamples
     
     gm_ns(it) = gamrnd(alpha_n + gsamples/2, beta_n + norm(y - X_dat*as(:, it))^2/2);
     
-%     y_approx = X*mean(as(:, 1:it)')';
-%     clf
-%     plot(xs, y);
-%     hold on
-%     plot(xs, y0);
-%     plot(xs, y_approx);
-%     drawnow
+%     if it > 500
+%         y_approx = X_dat*mean(as(:, 500:it), 2);
+%         clf
+%         hold on
+%         plot(xs, y0);
+%         plot(xs, y_approx);
+%         hold off
+%         drawnow
+%     end
 end
-a_approx = mean(as(:,100:gsamples), 2)
+a_approx = mean(as(:,500:gsamples), 2)
 clf
 figure(1)
 y_approx = X_dat*a_approx;
