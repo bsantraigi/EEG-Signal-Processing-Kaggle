@@ -92,3 +92,6 @@ for i = 1:size(safeTable, 1)
 end    
 
 close(h);  
+
+b = ((safeTable.safe == 0)|(safeTable.class==(1-type)));
+safeTable(b, :) = [];

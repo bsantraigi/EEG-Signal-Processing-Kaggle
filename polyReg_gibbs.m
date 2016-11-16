@@ -2,17 +2,18 @@
 clear
 close all
 N = 1000;
-xs = normrnd(0, 5, N, 1);
+xs = normrnd(0, 2, N, 1);
 xs = sort(xs);
 system_order = 3;
-a = [7;0.2;15]; % [a_0, a_1, a_2]
+a = [1.2;1;2]; % [a_0, a_1, a_2]
 X = ones(size(xs, 1),1);
 for i = 1:system_order-1
     X = [X xs.^i];
 end
 y0 = X*a;
 % y = awgn(y0, 0.005, 'measured');
-y = y0 + normrnd(0, 200, 1000, 1);
+nv = 25;
+y = y0 + normrnd(0, nv, 1000, 1);
 mse2 = @(x, x2) mean((x-x2).^2);
 
 %%
@@ -75,7 +76,10 @@ hold on
 plot(xs, y0);
 plot(xs, y_approx);
 legend('Noisy', 'Exact', 'Predicted Polynomial')
-
+xlabel('x')
+ylabel('y')
+% title('$$Q \geq \frac{I_h H}{I_h H+I_z C}, b_1 \geq b_2$$','interpreter','latex')
+title(['Polynomial Regression (Noise variance, $$\sigma^2' sprintf('=%d', nv) '$$)'], 'interpreter', 'latex')
 %%
 clf
 alpha = 1;
