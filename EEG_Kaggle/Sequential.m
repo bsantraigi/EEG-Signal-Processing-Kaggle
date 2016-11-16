@@ -1,6 +1,6 @@
 clear
 clc
-for user = 1:3
+for user = 2:2
 %     user = 1;
 
     % Training to be done using all available samples
@@ -14,8 +14,8 @@ for user = 1:3
     maxList_1 = zeros(256,1);
     minList_1 = 9e9*ones(256,1);
 
-    fcount = 20;
-    gap = 512;
+    fcount = 5;
+    gap = 1024;
     FS0 = zeros(length(1:gap:(240000 - 8192))*fcount, 256);
     FS1 = zeros(length(1:gap:(240000 - 8192))*fcount, 256);
     r = 1;
@@ -83,16 +83,31 @@ for user = 1:3
     %     r = r+1;
     % end
 
+    % FIXME(TODO): REMOVE OUTLIERS - USE M.A.D
+    madThresh = 3;
     for f = 1:256
-        [histMat_0(f, :), histEdges_0(f, :)] = histcounts(FS0(:, f), binSize);
+        fs0 = FS0(:, f);
+        m0 = median(fs0);
+        mad0 = median(abs(fs0 - m0));
+        fs0(abs((fs0 - m0)/mad0) > madThresh)= [];
+        
+        fs1 = FS1(:, f);
+        m1 = median(fs1);
+        mad1 = median(abs(fs1 - m1));
+        fs1(abs((fs1 - m1)/mad1) > madThresh)= [];
+        
+        [histMat_0(f, :), histEdges_0(f, :)] = histcounts(fs0, binSize);
         histMat_0(f, :) = histMat_0(f, :)/sum(histMat_0(f, :));
-        [histMat_1(f, :), histEdges_1(f, :)] = histcounts(FS1(:, f), binSize);
+        [histMat_1(f, :), histEdges_1(f, :)] = histcounts(fs1, binSize);
         histMat_1(f, :) = histMat_1(f, :)/sum(histMat_1(f, :));
-    end
-
+    end    
+    
     figure(2)
-    for f = 1:256
-        clf
+    clf
+    pic = 0;
+    for f = 1:100
+        pic = pic + 1;
+        subplot(10, 10, pic);
         hold on
         plot(histEdges_0(f, 1:end-1),histMat_0(f, :))
         plot(histEdges_1(f, 1:end-1), histMat_1(f, :))
@@ -103,7 +118,7 @@ for user = 1:3
     fselect = GetTestFiles(user);
     resultMap = containers.Map('KeyType','char','ValueType','double');
     PF = 0.01;
-    PD = 0.92;
+    PD = 0.98;
     tau_0 = log((1-PD)/(1-PF));
     tau_1 = log(PD/PF);
 
