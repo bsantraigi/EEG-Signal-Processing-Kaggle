@@ -1,8 +1,7 @@
 clear
 clc
-for user = 2:2
-%     user = 1;
-
+for user = [1, 3, 2]
+    fprintf('Starting user: %d\n', user)
     % Training to be done using all available samples
     [safeTable_0, fselect0] = getSafeList(user, 0);
     [safeTable_1, fselect1] = getSafeList(user, 1);
@@ -14,8 +13,8 @@ for user = 2:2
     maxList_1 = zeros(256,1);
     minList_1 = 9e9*ones(256,1);
 
-    fcount = 5;
-    gap = 1024;
+    fcount = 10;
+    gap = 512;
     FS0 = zeros(length(1:gap:(240000 - 8192))*fcount, 256);
     FS1 = zeros(length(1:gap:(240000 - 8192))*fcount, 256);
     r = 1;
@@ -54,7 +53,7 @@ for user = 2:2
         end
     end
     %%
-    binSize = 50;
+    binSize = 100;
     histMat_0 = zeros(256, binSize);
     histMat_1 = zeros(256, binSize);
     histEdges_0 = zeros(256, binSize + 1);
@@ -121,7 +120,6 @@ for user = 2:2
     PD = 0.98;
     tau_0 = log((1-PD)/(1-PF));
     tau_1 = log(PD/PF);
-
     for fi = 2:length(fselect)
         fname = fselect{fi};
         ftest = load(fname);
